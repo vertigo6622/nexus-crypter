@@ -24,11 +24,11 @@ every pe stub/loader gets burned the moment its source becomes public. the only 
 <img align="center" width="1000" height="100%" src="../img/putty.png" alt="putty debugging output">
 
 ## compile:
-.\gcc.exe stub.c -o stub.o [-DDEBUG] -fno-asynchronous-unwind-tables -fno-ident -fno-stack-protector
-.\ld.exe stub.o -o stub.exe -nostdlib --build-id=none -s --entry=_start
-.\objcopy.exe -O binary stub.exe stub.bin
-.\windres.exe resource.rc -o resource.o 
-.\gcc.exe nexus-crypter.c resource.o -o nexus-crypter.exe -lbcrypt
+`.\gcc.exe stub.c -o stub.o [-DDEBUG] -fno-asynchronous-unwind-tables -fno-ident -fno-stack-protector`
+`.\ld.exe stub.o -o stub.exe -nostdlib --build-id=none -s --entry=_start`
+`.\objcopy.exe -O binary stub.exe stub.bin`
+`.\windres.exe resource.rc -o resource.o`
+`.\gcc.exe nexus-crypter.c resource.o -o nexus-crypter.exe -lbcrypt`
 
 
 
