@@ -22,6 +22,8 @@ every pe stub/loader gets burned the moment its source becomes public. the only 
 
 <img align="center" width="1000" height="100%" src="img/splash.png" alt="nexus-crypter splashscreen">
 <img align="center" width="1000" height="100%" src="img/putty.png" alt="putty debugging output">
+<img align="center" width="1000" height="100%" src="img/die.png" alt="detect-it-easy">
+<img align="center" width="1000" height="100%" src="img/die2.png" alt="detect-it-easy">
 
 ## compile:
 * `.\gcc.exe stub.c -o stub.o [-DDEBUG] -fno-asynchronous-unwind-tables -fno-ident -fno-stack-protector`
