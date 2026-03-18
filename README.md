@@ -1,4 +1,4 @@
-# nexus-crypter v8
+# nexus-crypter
 x64 pe packer - signal: vertigo.66
 
 ## introduction:
