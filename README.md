@@ -17,6 +17,17 @@ every pe stub/loader gets burned the moment its source becomes public. the only 
 * checksum recalculation
 * pe section manipulation
 
+## to-do:
+
+my vision for this project is to eventually have a fully featured, working packer that rivals commercial products like themida, vmprotect, and others, but is open source and available to all. here are some features that will be added over the coming months/years:
+
+* integrity checks
+* compression
+* pyinstaller support
+* multiple working stub variants with different types of encryption and anti-debugging
+* license support/hardware binding
+* virtualization
+
 ## usage:
 `.\nexus-crypter.exe [--debug] program.exe packed.exe`
 
@@ -39,7 +50,7 @@ every pe stub/loader gets burned the moment its source becomes public. the only 
 * `.\gcc.exe nexus-crypter.c resource.o -o nexus-crypter.exe -lbcrypt`
 
 ## license:
-this software is licensed under the CC BY-NC-SA 4.0 license.
+this software is licensed under a modified ACSL 1.4 license.
 
 
 
