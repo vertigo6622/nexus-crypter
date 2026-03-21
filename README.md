@@ -3,9 +3,11 @@ x64 pe packer - signal: vertigo.66
 
 ## introduction:
 
-nexus-crypter is a custom pe parser and packer written in C. it is designed to be paired with a loader stub that decrypts and executes the packed payload. 
+nexus-crypter is a custom pe parser and packer written in C. it is designed to be paired with a loader stub that decrypts and executes the packed payload. a compiled stub example is available in the stubs folder. this stub uses rolling xor obfuscation with shifts and does not contain any anti-debugging mechanisms. it is NOT encryption. this basic version is designed to go with the packer source provided.
 
-every pe stub/loader gets burned the moment its source becomes public. the only way to stay ahead of this is to write your own custom one. i have included a template for you to fill out with your own code. this packer and stub template has been fully tested with a private fully functional stub, working on putty.exe, strings.exe, various other compiled exe's, as well as being able to pack itself. if you need help feel free to reach out on my signal: vertigo.66
+this packer/stub has been tested to work on putty.exe, strings.exe, and can even pack itself, and then pack other executables from the packed state.
+
+every pe stub/loader gets burned the moment its source becomes public. the only way to stay ahead of this is to write your own custom one. i have included a template for you to fill out with your own code. 
 
 ## features:
 * basic working compiled rolling xor stub (obfuscation not encryption)
@@ -20,13 +22,19 @@ every pe stub/loader gets burned the moment its source becomes public. the only 
 
 ## to-do:
 
-my vision for this project is to eventually have a fully featured, working packer that rivals commercial products like themida, vmprotect, and others, but is open source and available to all. here are some features that will be added over the coming months/years:
-
-* integrity checks
-* compression
+**community edition:**
+* hash-based import lookups
+* progress bar instead of string output
 * pyinstaller support
-* multiple working stub variants with different types of encryption and anti-debugging
+* remain updated to keep ahead of av detection
+
+**pro edition(unreleased):**
+
+* speck encryption
+* compression
 * license support/hardware binding
+* self-hosted key provisioning
+* proper gui
 * virtualization
 
 ## usage:
