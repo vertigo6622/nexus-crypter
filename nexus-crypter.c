@@ -2,15 +2,15 @@
 *
 *   __  _  ____ __  __ __ __  ____  ____ _____ __  _______  _____  ____ _____ 
 *  |  \| || ===|\ \/ /|  |  |(_ (_`/ (__`| () )\ \/ /| ()_)|_   _|| ===|| () )
-*  |_|\__||____|/_/\_\ \___/.__)__)\____)|_|\_\ |__| |_|     |_|  |____||_|\_\ v8
+*  |_|\__||____|/_/\_\ \___/.__)__)\____)|_|\_\ |__| |_|     |_|  |____||_|\_\ v1
 *   x64 pe packer - signal: vertigo.66
 *
-*   License: ANTI-CAPITALIST SOFTWARE LICENSE (v 1.4)
+*   License: ANTI-CAPITALIST SOFTWARE LICENSE (v 1.4 modified)
 *    
 *   Features:
-*   * BYOS (bring your own stub)
+*   * rolling xor test stub included
 *   * stub template available
-*   * extensive debug output (-DDEBUG & --debug flags)
+*   * extensive debug output (--debug flag)
 *   * randomized config marker
 *   * zeroed out optional headers
 *   * secure key generation
@@ -59,10 +59,10 @@ static int g_debug = 0;
 #define DBG_DEC(name, val) do { if (g_debug) printf("[DEBUG] %-30s = %llu\n", name, (unsigned long long)(val)); } while(0)
 #define DBG_STR(name, val) do { if (g_debug) printf("[DEBUG] %-30s = %s\n", name, (val)); } while(0)
 
-#define INFO(fmt, ...) printf("[*] " fmt "\n", ##__VA_ARGS__)
-#define SUCCESS(fmt, ...) printf("[+] " fmt "\n", ##__VA_ARGS__)
-#define ERR(fmt, ...) fprintf(stderr, "[-] " fmt "\n", ##__VA_ARGS__)
-#define WARN(fmt, ...) printf("[!] " fmt "\n", ##__VA_ARGS__)
+#define INFO(fmt, ...) printf("+" fmt "\n", ##__VA_ARGS__)
+#define SUCCESS(fmt, ...) printf("+" fmt "\n", ##__VA_ARGS__)
+#define ERR(fmt, ...) fprintf(stderr, "!+" fmt "\n", ##__VA_ARGS__)
+#define WARN(fmt, ...) printf("!+" fmt "\n", ##__VA_ARGS__)
 
 // ============================================================================
 // UTILITY FUNCTIONS
@@ -90,17 +90,58 @@ uint32_t align_up(uint32_t value, uint32_t alignment) {
 // ENCRYPTION
 // ============================================================================
 
-void encrypt_data(uint8_t* data, size_t size, uint64_t key) {
+void obfuscate_data(uint8_t* data, size_t size, uint64_t key) {
     DBG("Encrypting %zu bytes with key 0x%016llX", size, (unsigned long long)key);
-    // your encryption here...
+    
+    uint8_t key_xor_aa = (uint8_t)(key ^ 0xAA);
+    uint8_t key_xor_aa_shr8 = (uint8_t)((key ^ 0xAA) >> 8);
+    
+    DBG_HEX("key ^ 0xAA (low byte)", key_xor_aa);
+    DBG_HEX("(key ^ 0xAA) >> 8 (low byte)", key_xor_aa_shr8);
+    
+    for (size_t i = 0; i < size; i++) {
+        uint8_t original = data[i];
+        
+        uint8_t shift1 = (uint8_t)((i * 8) & 0x3F);
+        uint8_t shift2 = (uint8_t)((24 + i * 8) & 0x3F);
+        uint8_t shift3 = (uint8_t)((56 + i * 8) & 0x3F);
+        
+        uint8_t mask = (uint8_t)(key >> shift1)
+                     ^ (uint8_t)(key >> shift2)
+                     ^ (uint8_t)(key >> shift3);
+        
+        data[i] ^= mask;
+        data[i] += key_xor_aa;
+        data[i] -= key_xor_aa_shr8;
+        
+        if (g_debug && i < 8) {
+            DBG("Byte %zu: 0x%02X -> 0x%02X (mask=0x%02X)", i, original, data[i], mask);
+        }
+    }
 }
 
-void verify_encryption(uint8_t* original, uint8_t* encrypted, size_t size, uint64_t key) {
+void verify_obfuscation(uint8_t* original, uint8_t* encrypted, size_t size, uint64_t key) {
     if (!g_debug) return;
 
     uint8_t* test = (uint8_t*)malloc(size);
     memcpy(test, encrypted, size);
-    // your decryption here...
+    
+    uint8_t key_xor_aa = (uint8_t)(key ^ 0xAA);
+    uint8_t key_xor_aa_shr8 = (uint8_t)((key ^ 0xAA) >> 8);
+    
+    for (size_t i = 0; i < size; i++) {
+        uint8_t shift1 = (uint8_t)((i * 8) & 0x3F);
+        uint8_t shift2 = (uint8_t)((24 + i * 8) & 0x3F);
+        uint8_t shift3 = (uint8_t)((56 + i * 8) & 0x3F);
+        
+        uint8_t mask = (uint8_t)(key >> shift1)
+                     ^ (uint8_t)(key >> shift2)
+                     ^ (uint8_t)(key >> shift3);
+
+        test[i] += key_xor_aa_shr8;
+        test[i] -= key_xor_aa;
+        test[i] ^= mask;
+    }
     
     if (memcmp(original, test, size) == 0) {
         SUCCESS("Encryption verification PASSED");
@@ -170,11 +211,25 @@ uint64_t generate_key(void) {
 #pragma pack(push, 1)
 typedef struct _STUB_CONFIG {
     uint64_t key;
-    // your stub config struct here...
+    uint32_t original_oep;
+    uint32_t encrypted_start_rva;
+    uint32_t encrypted_size;
+    uint64_t image_base;
+    uint32_t sections_rva;
+    uint32_t stub_code_size;
+    uint32_t import_rva;
+    uint32_t import_size;
+    uint32_t resource_rva;
+    uint32_t resource_size;
+    uint32_t tls_rva;
+    uint32_t tls_size;
+    uint32_t exception_rva;
+    uint32_t exception_size;
+    uint32_t reloc_rva;
+    uint32_t reloc_size;
 } STUB_CONFIG;
 #pragma pack(pop)
 
-// backup function to load from file if not using resources
 uint8_t* load_stub_binary(size_t* out_size) {
     DBG("Loading stub binary from 'stub.bin'...");
     
@@ -311,9 +366,8 @@ IMAGE_SECTION_HEADER* add_section(uint8_t** pe_data, size_t* pe_size,
     
     DBG_HEX("Section table ends at", section_table_end);
     DBG_HEX("First section data at", first_section_data);
-
-    // shift headers along if not enough space for new section
-    if (section_table_end + sizeof(IMAGE_SECTION_HEADER) > first_section_data) { 
+    
+    if (section_table_end + sizeof(IMAGE_SECTION_HEADER) > first_section_data) {
         DBG("Not enough header space, shifting sections...");
         
         uint32_t shift = file_align;
@@ -531,10 +585,10 @@ int pack_pe(uint8_t** pe_data, size_t* pe_size, uint8_t* stub, size_t stub_size)
 
     DBG("=== STEP 5: Encrypting payload ===");
     INFO("Encrypting %zu bytes...", encrypt_size);
-    encrypt_data(*pe_data + encrypt_start, encrypt_size, key);
+    obfuscate_data(*pe_data + encrypt_start, encrypt_size, key);
 
     if (backup) {
-        verify_encryption(backup, *pe_data + encrypt_start, encrypt_size, key);
+        verify_obfuscation(backup, *pe_data + encrypt_start, encrypt_size, key);
         free(backup);
     }
 
@@ -561,16 +615,31 @@ int pack_pe(uint8_t** pe_data, size_t* pe_size, uint8_t* stub, size_t stub_size)
 
     DBG("=== STEP 7: Writing stub and config ===");
     uint8_t* stub_location = *pe_data + stub_sec->PointerToRawData;
-    // choose where to store your config...
+    STUB_CONFIG* config_location = (STUB_CONFIG*)(stub_location + stub_size);
 
-    // write to your config here...
+    config_location->key = meta.Key;
+    config_location->original_oep = meta.OriginalOEP;
+    config_location->encrypted_start_rva = meta.EncryptStartOffset;
+    config_location->encrypted_size = meta.EncryptedSize;
+    config_location->image_base = meta.OriginalImageBase;
+    config_location->sections_rva = meta.SectionsRVA;
+    config_location->stub_code_size = (uint32_t)stub_size;
+    config_location->import_rva = meta.ImportRVA;
+    config_location->import_size = meta.ImportSize;
+    config_location->resource_rva = meta.ResourceRVA;
+    config_location->resource_size = meta.ResourceSize;
+    config_location->tls_rva = meta.TLSRVA;
+    config_location->tls_size = meta.TLSSize;
+    config_location->exception_rva = meta.ExceptionRVA;
+    config_location->exception_size = meta.ExceptionSize;
+    config_location->reloc_rva = meta.RelocRVA;
+    config_location->reloc_size = meta.RelocSize;
+
     DBG("Wrote config at file offset 0x%zX", (size_t)((uint8_t*)config_location - *pe_data));
 
-    // random config marker
     uint32_t config_marker;
     BCryptGenRandom(NULL, (PUCHAR)&config_marker, sizeof(uint32_t), BCRYPT_USE_SYSTEM_PREFERRED_RNG);
 
-    // marker bytes to patch in stub
     uint8_t pattern[] = {0xEF, 0xBE, 0xAD, 0xDE};
     for (size_t i = 0; i < stub_size - 4; i++) {
         if (stub[i] == pattern[0] && stub[i+1] == pattern[1] && stub[i+2] == pattern[2] && stub[i+3] == pattern[3]) {
@@ -583,7 +652,6 @@ int pack_pe(uint8_t** pe_data, size_t* pe_size, uint8_t* stub, size_t stub_size)
     memcpy(stub_location, stub, stub_size);
     DBG("Wrote stub code at file offset 0x%X", stub_sec->PointerToRawData);
 
-    // write randomized marker
     memcpy((uint8_t*)config_location + sizeof(STUB_CONFIG), &config_marker, 4);
     DBG_HEX("Wrote randomized stub config marker", config_marker);
     
@@ -652,21 +720,18 @@ int pack_pe(uint8_t** pe_data, size_t* pe_size, uint8_t* stub, size_t stub_size)
 // ============================================================================
 
 void print_usage(const char* prog) {
-    printf("Usage: %s [--debug] [--ultra] <input.exe> <output.exe>\n", prog);
+    printf("Usage: %s [--debug] <input.exe> <output.exe>\n", prog);
     printf("\nOptions:\n");
     printf("  --debug    Enable verbose debug output\n");
-    printf("  --ultra    Enable anti-debugging protections\n");
     printf("\nExample:\n");
     printf("  %s program.exe packed.exe\n", prog);
     printf("  %s --debug program.exe packed.exe\n", prog);
-    printf("  %s --ultra program.exe packed.exe\n");
-
 }
 
 int main(int argc, char* argv[]) {
     printf("\n __  _  ____ __  __ __ __  ____  ____ _____ __  _______  _____  ____ _____ \n");
     printf("|  \\| || ===|\\ \\/ /|  |  |(_ (_`/ (__`| () )\\ \\/ /| ()_)|_   _|| ===|| () )\n");
-    printf("|_|\\__||____|/_/\\_\\ \\___/.__)__)\\____)|_|\\_\\ |__| |_|     |_|  |____||_|\\_\\ v8\n");
+    printf("|_|\\__||____|/_/\\_\\ \\___/.__)__)\\____)|_|\\_\\ |__| |_|     |_|  |____||_|\\_\\ v1\n");
     printf(" x64 pe packer - signal: vertigo.66\n");
     printf("----------------------------------------------------------------------------\n\n");
     
