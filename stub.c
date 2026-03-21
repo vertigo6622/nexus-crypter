@@ -474,7 +474,7 @@ void position_independent_entry(void) {
 __attribute__((naked)) int _start() {
     __asm__ volatile ( 
         ".intel_syntax noprefix\n"
-        ".byte 0x42, 0x59, 0x4F, 0x53\n" // entry marker
+        ".byte 0x0F, 0x0B, 0x0F, 0x0B\n" // entry marker
         "and rsp, 0xFFFFFFFFFFFFFFF0\n"  // align the stack
         "sub rsp, 0x20\n"                // allocate shadow space
         "call position_independent_entry\n"  
