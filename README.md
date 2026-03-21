@@ -1,5 +1,5 @@
-# obsidian
-x64 pe packer - signal: vertigo.66
+# obsidian x64 pe packer
+signal: vertigo.66
 
 ## introduction:
 
