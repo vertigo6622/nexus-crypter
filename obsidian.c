@@ -68,10 +68,10 @@ static int g_debug = 0;
 #define DBG_DEC(name, val) do { if (g_debug) printf("[DEBUG] %-30s = %llu\n", name, (unsigned long long)(val)); } while(0)
 #define DBG_STR(name, val) do { if (g_debug) printf("[DEBUG] %-30s = %s\n", name, (val)); } while(0)
 
-#define INFO(fmt, ...) printf("+" fmt "\n", ##__VA_ARGS__)
-#define SUCCESS(fmt, ...) printf("+" fmt "\n", ##__VA_ARGS__)
-#define ERR(fmt, ...) fprintf(stderr, "!+" fmt "\n", ##__VA_ARGS__)
-#define WARN(fmt, ...) printf("!+" fmt "\n", ##__VA_ARGS__)
+#define INFO(fmt, ...) printf("" fmt "\n", ##__VA_ARGS__)
+#define SUCCESS(fmt, ...) printf("" fmt "\n", ##__VA_ARGS__)
+#define ERR(fmt, ...) fprintf(stderr, "!" fmt "\n", ##__VA_ARGS__)
+#define WARN(fmt, ...) printf("!" fmt "\n", ##__VA_ARGS__)
 
 // ============================================================================
 // UTILITY FUNCTIONS
